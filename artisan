@@ -1,0 +1,6 @@
+<?php
+// Proxy to the Laravel app inside photobooth-app so
+// `php artisan ...` works from the repository root.
+
+require __DIR__ . '/photobooth-app/artisan';
+
