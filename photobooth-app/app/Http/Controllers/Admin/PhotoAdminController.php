@@ -32,16 +32,33 @@ class PhotoAdminController extends Controller
 
     public function create()
     {
-        return view('admin.photos.create');
+        // Get available events from photos table
+        $availableEvents = DB::table('photos')
+            ->select('event_id')
+            ->whereNotNull('event_id')
+            ->distinct()
+            ->orderBy('event_id')
+            ->pluck('event_id')
+            ->toArray();
+
+        return view('admin.photos.create', compact('availableEvents'));
     }
 
     public function upload(Request $request)
     {
         $data = $request->validate([
             'event' => ['required','string','max:120'],
+            'custom_event' => ['nullable','string','max:120'],
             'files' => ['required','array'],
             'files.*' => [FileRule::image()->max(10 * 1024)], // up to 10MB each (server limit may still apply)
         ]);
+
+        // Handle custom event input
+        if ($data['event'] === '__custom__' && !empty($data['custom_event'])) {
+            $data['event'] = trim($data['custom_event']);
+        } elseif ($data['event'] === '__custom__') {
+            return back()->withErrors(['event' => 'Silakan masukkan Event ID atau pilih dari daftar.'])->withInput();
+        }
 
         $files = (array) $request->file('files', []);
         if (empty($files)) {
@@ -77,52 +94,6 @@ class PhotoAdminController extends Controller
         }
 
         return back()->with('status', $stored . ' foto diunggah.');
-    }
-
-    public function importUrl(Request $request)
-    {
-        $data = $request->validate([
-            'event' => ['required','string','max:120'],
-            'url' => ['required','url'],
-        ]);
-
-        $url = $this->normalizeDriveUrl($data['url']);
-        $resp = Http::timeout(20)->get($url);
-        if (!$resp->ok()) {
-            return back()->withErrors(['url' => 'Gagal mengambil file dari URL'])->withInput();
-        }
-        $contentType = $resp->header('Content-Type', 'image/jpeg');
-        $filename = $this->guessFilenameFromHeadersOrUrl($resp->header('Content-Disposition'), $url, $contentType);
-        $this->importer->storeFromContent($filename, $contentType, $resp->body(), $data['event']);
-        return back()->with('status', 'Foto dari tautan berhasil diimpor.');
-    }
-
-    // storePhotoFromContent moved to App\Services\PhotoImporter
-
-    protected function normalizeDriveUrl(string $url): string
-    {
-        // Handle various Google Drive formats, otherwise return original url
-        if (preg_match('~drive\.google\.com/file/d/([\w-]+)/~', $url, $m)) {
-            return 'https://drive.google.com/uc?id='.$m[1].'&export=download';
-        }
-        if (preg_match('~drive\.google\.com/open\?id=([\w-]+)~', $url, $m)) {
-            return 'https://drive.google.com/uc?id='.$m[1].'&export=download';
-        }
-        return $url;
-    }
-
-    protected function guessFilenameFromHeadersOrUrl(?string $contentDisposition, string $url, ?string $contentType): string
-    {
-        if ($contentDisposition && preg_match('/filename="?([^";]+)"?/i', $contentDisposition, $m)) {
-            return $m[1];
-        }
-        $path = parse_url($url, PHP_URL_PATH) ?: '';
-        $basename = basename($path);
-        if ($basename && strpos($basename, '.') !== false) {
-            return $basename;
-        }
-        $ext = $contentType && str_contains($contentType, 'png') ? 'png' : 'jpg';
-        return 'drive-import.'.$ext;
     }
 
     public function retry(Photo $photo)
@@ -305,8 +276,17 @@ class PhotoAdminController extends Controller
     {
         $data = $request->validate([
             'event' => ['required','string','max:160'],
+            'custom_event' => ['nullable','string','max:160'],
         ]);
-        $event = $data['event'];
+
+        // Handle custom event input
+        if ($data['event'] === '__custom__' && !empty($data['custom_event'])) {
+            $event = trim($data['custom_event']);
+        } elseif ($data['event'] === '__custom__') {
+            return back()->withErrors(['event' => 'Silakan masukkan Event ID atau pilih dari daftar.'])->withInput();
+        } else {
+            $event = $data['event'];
+        }
         $url = route('gallery', ['event' => $event]);
         // Generate QR as SVG to avoid Imagick/GD dependency
         $renderer = new ImageRenderer(

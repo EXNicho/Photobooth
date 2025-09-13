@@ -8,6 +8,7 @@ use Google\Service\Drive as GoogleDrive;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Client as GuzzleClient;
+use Illuminate\Support\Facades\Cache;
 
 class SyncGDrive extends Command
 {
@@ -17,6 +18,16 @@ class SyncGDrive extends Command
 
     public function handle(PhotoImporter $importer): int
     {
+        // Rate limiting - sync at most once every 5 minutes to avoid Google API limits
+        $lastSyncKey = 'gdrive_last_sync';
+        $lastSync = Cache::get($lastSyncKey, 0);
+        $minInterval = 5 * 60; // 5 minutes in seconds
+
+        if (time() - $lastSync < $minInterval) {
+            $this->info('Skipping sync - rate limited (last sync was less than 5 minutes ago)');
+            return self::SUCCESS;
+        }
+
         $folderId = $this->option('folder-id') ?: env('GDRIVE_FOLDER_ID') ?: \App\Models\Setting::get('gdrive_folder_id');
         if (!$folderId) {
             $this->error('GDRIVE_FOLDER_ID not set and --folder-id not provided.');
@@ -38,6 +49,9 @@ class SyncGDrive extends Command
             $this->error('GDRIVE_CREDENTIALS_JSON path invalid or missing.');
             return self::FAILURE;
         }
+
+        // Update last sync time
+        Cache::put($lastSyncKey, time(), now()->addHours(24));
 
         $client = new GoogleClient();
         $client->setAuthConfig($credentials);
@@ -75,6 +89,10 @@ class SyncGDrive extends Command
                     try {
                         $exists = \App\Models\Photo::where('drive_file_id', $file->getId())->exists();
                         if ($exists) continue;
+
+                        // Rate limit API calls - wait 100ms between downloads
+                        usleep(100000);
+
                         $content = $service->files->get($file->getId(), ['alt' => 'media']);
                         $binary = $content->getBody()->getContents();
                         $importer->storeFromContent($file->getName(), $mime, $binary, $eventIdDefault, $file->getId());

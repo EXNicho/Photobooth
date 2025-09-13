@@ -7,7 +7,6 @@
   </div>
   <aside class="space-y-2">
     <h2 class="text-xl font-medium">Detail Foto</h2>
-    <div>Token: <code>{{ $photo->qr_token }}</code></div>
     <div>Nama: {{ $photo->original_name ?? $photo->filename }}</div>
     <div>Ukuran: {{ number_format($photo->size/1024, 1) }} KB</div>
     <div>Tanggal: {{ optional($photo->captured_at ?? $photo->uploaded_at)->format('Y-m-d H:i') }}</div>
@@ -20,7 +19,7 @@
     </div>
     @if($photo->qr_url)
       <img class="w-60 hero-img" src="{{ $photo->qr_url }}" alt="QR" />
-      <div><small>Scan untuk membuka: {{ url('/p/'.$photo->qr_token) }}</small></div>
+      <div><small>Scan QR code untuk membuka foto ini</small></div>
     @endif
   </aside>
   

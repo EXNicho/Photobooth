@@ -42,7 +42,6 @@ Route::middleware(['web', \App\Http\Middleware\AgentsPolicyMiddleware::class])->
         Route::get('/photos', [PhotoAdminController::class, 'index'])->name('photos.index');
         Route::get('/photos/create', [PhotoAdminController::class, 'create'])->name('photos.create');
         Route::post('/photos/upload', [PhotoAdminController::class, 'upload'])->name('photos.upload');
-        Route::post('/photos/import-url', [PhotoAdminController::class, 'importUrl'])->name('photos.import');
         Route::post('/photos/{photo}/retry', [PhotoAdminController::class, 'retry'])->name('photos.retry');
         Route::post('/photos/{photo}/regenerate-qr', [PhotoAdminController::class, 'regenerateQr'])->name('photos.regenerate');
         Route::post('/photos/{photo}/approve', [PhotoAdminController::class, 'approve'])->name('photos.approve');

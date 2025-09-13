@@ -18,7 +18,6 @@
     <thead>
       <tr>
         <th>ID</th>
-        <th>Token</th>
         <th>Status</th>
         <th>Uploaded</th>
         <th>Aksi</th>
@@ -28,8 +27,7 @@
     @foreach($photos as $p)
       <tr class="border-t border-gray-200">
         <td><code>{{ $p->id }}</code></td>
-        <td><code>{{ $p->qr_token }}</code></td>
-      <td>
+        <td>
         @php
           $map = [
             'ready' => 'badge-success',

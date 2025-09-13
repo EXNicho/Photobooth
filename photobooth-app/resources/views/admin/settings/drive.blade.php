@@ -24,7 +24,26 @@
         </div>
         <div>
           <label class="form-label" for="gdrive_default_event">Default Event (opsional)</label>
-          <input class="input" id="gdrive_default_event" name="gdrive_default_event" type="text" placeholder="mis. wedding-andi-sinta" value="{{ old('gdrive_default_event', $defaultEvent) }}" />
+          <select class="input" id="gdrive_default_event" name="gdrive_default_event" onchange="toggleCustomEventInput()">
+            <option value="">-- Pilih Event --</option>
+            @foreach($availableEvents as $event)
+              <option value="{{ $event }}" {{ old('gdrive_default_event', $defaultEvent) === $event ? 'selected' : '' }}>
+                {{ $event }}
+              </option>
+            @endforeach
+            <option value="__custom__" {{ !in_array(old('gdrive_default_event', $defaultEvent), $availableEvents) && old('gdrive_default_event', $defaultEvent) ? 'selected' : '' }}>
+              Event Baru (Custom)
+            </option>
+          </select>
+          <input
+            class="input mt-2"
+            id="custom_event_input"
+            name="custom_event"
+            type="text"
+            placeholder="mis. wedding-andi-sinta"
+            value="{{ !in_array(old('gdrive_default_event', $defaultEvent), $availableEvents) ? old('gdrive_default_event', $defaultEvent) : '' }}"
+            style="display: {{ !in_array(old('gdrive_default_event', $defaultEvent), $availableEvents) && old('gdrive_default_event', $defaultEvent) ? 'block' : 'none' }}"
+          />
           <p class="form-help">Jika diisi, semua foto baru dari Drive akan di-tag ke event ini.</p>
         </div>
         <div class="flex items-center gap-2">
@@ -38,15 +57,18 @@
     <div class="card p-4 mt-4">
       <div class="flex items-start justify-between gap-3">
         <div>
-          <div class="font-medium">Sinkronisasi Sekarang</div>
-          <div class="text-sm text-gray-500 dark:text-gray-400">Menjalankan impor segera tanpa menunggu jadwal.</div>
+          <div class="font-medium">Sinkronisasi Otomatis</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            Sistem akan melakukan sync otomatis setiap 5 menit untuk menghindari rate limit Google Drive.
+            <br>Klik tombol di samping untuk melakukan sync manual segera.
+          </div>
         </div>
         <form id="syncForm" method="post" action="{{ route('admin.settings.drive.sync') }}">
           @csrf
           <button class="btn-primary" type="submit">Sync Now</button>
         </form>
       </div>
-      <p class="form-help mt-2">Pastikan kredensial telah diatur di <code>.env</code> (<code>GDRIVE_CREDENTIALS_JSON</code>).</p>
+      <p class="form-help mt-2">Pastikan kredensial telah diatur di <code>.env</code> (<code>GDRIVE_CREDENTIALS_JSON</code>) atau gunggah di bawah.</p>
     </div>
 
     <div class="card p-4 mt-4">
@@ -64,4 +86,31 @@
       <p class="form-help mt-2">Jika diunggah di sini, sistem otomatis memakai file tersebut tanpa perlu mengubah <code>.env</code>.</p>
     </div>
   </div>
+
+  <script>
+    function toggleCustomEventInput() {
+      const select = document.getElementById('gdrive_default_event');
+      const customInput = document.getElementById('custom_event_input');
+
+      if (select.value === '__custom__') {
+        customInput.style.display = 'block';
+        customInput.focus();
+      } else {
+        customInput.style.display = 'none';
+        customInput.value = '';
+      }
+    }
+
+    // Update form submission to handle custom event
+    document.getElementById('driveForm').addEventListener('submit', function(e) {
+      const select = document.getElementById('gdrive_default_event');
+      const customInput = document.getElementById('custom_event_input');
+
+      if (select.value === '__custom__' && customInput.value.trim()) {
+        // Replace the select value with the custom input value
+        select.innerHTML += '<option value="' + customInput.value + '" selected></option>';
+        select.value = customInput.value;
+      }
+    });
+  </script>
 @endsection

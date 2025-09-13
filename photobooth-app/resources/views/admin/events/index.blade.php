@@ -12,13 +12,34 @@
 
 <div class="card p-6">
   <h2 class="font-medium mb-3">Buat QR untuk Event</h2>
-  <form method="post" action="{{ route('admin.events.qr') }}" class="flex flex-col sm:flex-row gap-3 items-start">
+  <form method="post" action="{{ route('admin.events.qr') }}" class="flex flex-col gap-3">
     @csrf
-    <input type="text" name="event" value="{{ old('event') }}" required class="input flex-1 min-w-60" placeholder="Masukkan Event ID (misal: wedding-rian-dita-2025-01-12)">
-    <div class="flex items-center gap-2">
-      <button type="submit" class="btn-primary">Generate QR</button>
-      <button type="submit" name="download" value="1" class="btn-muted">Generate & Unduh</button>
+    <div class="flex flex-col sm:flex-row gap-3 items-start">
+      <select name="event" required class="input flex-1 min-w-60" onchange="toggleCustomEventInput('events')">
+        <option value="">-- Pilih Event --</option>
+        @foreach($events as $e)
+          <option value="{{ $e->event_id }}" {{ old('event') === $e->event_id ? 'selected' : '' }}>
+            {{ $e->event_id }} ({{ $e->total }} foto)
+          </option>
+        @endforeach
+        <option value="__custom__" {{ !in_array(old('event'), collect($events)->pluck('event_id')->toArray()) && old('event') ? 'selected' : '' }}>
+          Event Baru (Custom)
+        </option>
+      </select>
+      <div class="flex items-center gap-2">
+        <button type="submit" class="btn-primary">Generate QR</button>
+        <button type="submit" name="download" value="1" class="btn-muted">Generate & Unduh</button>
+      </div>
     </div>
+    <input
+      id="custom_event_events"
+      name="custom_event"
+      type="text"
+      class="input"
+      placeholder="Masukkan Event ID (misal: wedding-rian-dita-2025-01-12)"
+      value="{{ !in_array(old('event'), collect($events)->pluck('event_id')->toArray()) ? old('event') : '' }}"
+      style="display: {{ !in_array(old('event'), collect($events)->pluck('event_id')->toArray()) && old('event') ? 'block' : 'none' }}"
+    />
   </form>
 </div>
 
@@ -64,4 +85,34 @@
     </table>
   </div>
 </div>
+
+<script>
+function toggleCustomEventInput(formType) {
+  const select = document.querySelector('select[name="event"]');
+  const customInput = document.getElementById('custom_event_' + formType);
+
+  if (select.value === '__custom__') {
+    customInput.style.display = 'block';
+    customInput.focus();
+  } else {
+    customInput.style.display = 'none';
+    customInput.value = '';
+  }
+}
+
+// Handle form submission to process custom event
+document.querySelector('form').addEventListener('submit', function(e) {
+  const select = document.querySelector('select[name="event"]');
+  const customInput = document.getElementById('custom_event_events');
+
+  if (select.value === '__custom__' && customInput.value.trim()) {
+    // Create a new option with the custom value and select it
+    const newOption = document.createElement('option');
+    newOption.value = customInput.value.trim();
+    newOption.selected = true;
+    select.appendChild(newOption);
+    select.value = customInput.value.trim();
+  }
+});
+</script>
 @endsection
