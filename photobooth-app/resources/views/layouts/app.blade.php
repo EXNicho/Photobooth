@@ -77,22 +77,25 @@
           @endif
       </div>
       <nav class="nav hidden md:flex absolute left-1/2 -translate-x-1/2">
-          <a class="nav-link" href="{{ route('home') }}">Home</a>
-          <a class="nav-link" href="{{ route('gallery') }}">Cari Foto</a>
+          <a class="nav-link nav-highlight" href="{{ route('home') }}">Home</a>
+          <a class="nav-link nav-highlight" href="{{ route('gallery') }}">Cari Foto</a>
       </nav>
       <div class="flex items-center gap-4">
           <button id="theme-btn" type="button" class="icon-btn" onclick="toggleTheme()" aria-label="Ubah tema" aria-pressed="false"></button>
           @auth
-              @if(auth()->user()->is_admin)
-                <a class="icon-btn" href="{{ route('admin.events') }}" aria-label="Event QR" title="Event QR">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true">
-                    <path d="M3 3h8v8H3V3Zm2 2v4h4V5H5Zm11-2h5v5h-5V3Zm2 2v1h1V5h-1ZM3 13h5v5H3v-5Zm2 2v1h1v-1H5Zm7-2h2v2h-2v-2Zm0 3h2v2h-2v-2Zm3-3h2v2h-2v-2Zm3 0h2v2h-2v-2Zm-6 6h2v2h-2v-2Zm3-3h2v2h-2v-2Zm3 3h2v2h-2v-2Zm-3 3h2v2h-2v-2Z"/>
-                  </svg>
-                </a>
-                <a class="nav-link" href="{{ route('admin.photos.index') }}">Admin</a>
-              @endif
-              <a class="nav-link" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
-              <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
+              <div class="hidden md:flex items-center gap-4">
+                @if(auth()->user()->is_admin)
+                  <a class="icon-btn" href="{{ route('admin.events') }}" aria-label="Event QR" title="Event QR">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true">
+                      <path d="M3 3h8v8H3V3Zm2 2v4h4V5H5Zm11-2h5v5h-5V3Zm2 2v1h1V5h-1ZM3 13h5v5H3v-5Zm2 2v1h1v-1H5Zm7-2h2v2h-2v-2Zm0 3h2v2h-2v-2Zm3-3h2v2h-2v-2Zm3 0h2v2h-2v-2Zm-6 6h2v2h-2v-2Zm3-3h2v2h-2v-2Zm3 3h2v2h-2v-2Zm-3 3h2v2h-2v-2Z"/>
+                    </svg>
+                  </a>
+                  <a class="nav-link" href="{{ route('admin.photos.index') }}">Admin</a>
+                  <a class="nav-link" href="{{ route('admin.settings.drive') }}">Drive</a>
+                @endif
+                <a class="nav-link" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
+              </div>
           @else
               <a class="icon-btn" href="{{ route('login') }}" aria-label="Login" title="Login">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true">
@@ -105,13 +108,14 @@
   <!-- Mobile nav -->
   <div id="mobile-nav" class="md:hidden hidden border-b border-gray-200 bg-white dark:bg-gray-900 px-5 py-3">
       <nav class="flex flex-col items-start gap-3">
-          <a class="nav-link" href="{{ route('home') }}">Home</a>
-          <a class="nav-link" href="{{ route('gallery') }}">Cari Foto</a>
+          <a class="nav-link nav-highlight" href="{{ route('home') }}">Home</a>
+          <a class="nav-link nav-highlight" href="{{ route('gallery') }}">Cari Foto</a>
           @auth
-              @if(auth()->user()->is_admin)
-                <a class="nav-link" href="{{ route('admin.photos.index') }}">Admin</a>
-                <a class="nav-link" href="{{ route('admin.events') }}">Event QR</a>
-              @endif
+                @if(auth()->user()->is_admin)
+                 <a class="nav-link" href="{{ route('admin.photos.index') }}">Admin</a>
+                 <a class="nav-link" href="{{ route('admin.events') }}">Event QR</a>
+                 <a class="nav-link" href="{{ route('admin.settings.drive') }}">Drive</a>
+                @endif
               <a class="nav-link" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-mobile').submit();">Logout</a>
               <form id="logout-form-mobile" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
           @else

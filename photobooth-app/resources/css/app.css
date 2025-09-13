@@ -36,8 +36,24 @@
     background-image: linear-gradient(to right, theme(colors.brand.900/30), theme(colors.gray.900/0));
   }
   .nav { @apply flex items-center gap-4 text-gray-700 dark:text-gray-300; }
-  .nav-link { @apply hover:text-gray-900 transition-colors dark:hover:text-white; }
+  .nav-link { @apply relative hover:text-gray-900 transition-colors dark:hover:text-white; }
   .nav-link:focus-visible { @apply outline-none ring-2 ring-brand-400 rounded-md; }
+  /* Animated underline on hover */
+  .nav-link::after {
+    content: '';
+    @apply absolute left-0 -bottom-1 h-0.5 bg-brand-600 rounded-full transition-transform duration-200 ease-in-out;
+    width: 100%;
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .dark .nav-link::after { @apply bg-brand-400; }
+  .nav-link:hover::after, .nav-link:focus-visible::after { transform: scaleX(1); }
+
+  /* Highlighted main nav items (Home, Cari Foto) */
+  .nav-highlight { @apply px-4 py-2 rounded-full border text-base font-semibold md:px-5 md:py-2.5 md:text-lg; }
+  .nav-highlight { @apply bg-brand-50 text-brand-800 border-brand-200 hover:bg-brand-100 hover:border-brand-300; }
+  .dark .nav-highlight { @apply bg-brand-900/30 text-brand-200 border-brand-800 hover:bg-brand-800/40; }
+  .nav-highlight::after { content: none; }
   .icon-btn { @apply inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 transition-colors focus-visible:ring-2 focus-visible:ring-brand-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700; }
 
   /* Badges */

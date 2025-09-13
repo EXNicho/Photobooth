@@ -54,5 +54,12 @@ Route::middleware(['web', \App\Http\Middleware\AgentsPolicyMiddleware::class])->
         Route::get('/events', [PhotoAdminController::class, 'events'])->name('events');
         Route::post('/events/qr', [PhotoAdminController::class, 'generateEventQr'])->name('events.qr');
         Route::post('/events/delete', [PhotoAdminController::class, 'deleteEvent'])->name('events.delete');
+
+        // Settings - Google Drive
+        \App\Http\Controllers\Admin\SettingsController::class;
+        Route::get('/settings/drive', [\App\Http\Controllers\Admin\SettingsController::class, 'drive'])->name('settings.drive');
+        Route::post('/settings/drive', [\App\Http\Controllers\Admin\SettingsController::class, 'saveDrive'])->name('settings.drive.save');
+        Route::post('/settings/drive/sync', [\App\Http\Controllers\Admin\SettingsController::class, 'syncNow'])->name('settings.drive.sync');
+        Route::post('/settings/drive/credentials', [\App\Http\Controllers\Admin\SettingsController::class, 'uploadCredentials'])->name('settings.drive.credentials');
     });
 });

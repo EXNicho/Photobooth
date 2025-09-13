@@ -17,8 +17,13 @@ use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 
+use App\Services\PhotoImporter;
+
 class PhotoAdminController extends Controller
 {
+    public function __construct(private readonly PhotoImporter $importer)
+    {
+    }
     public function index()
     {
         $photos = Photo::query()->latest()->paginate(50);
@@ -64,7 +69,7 @@ class PhotoAdminController extends Controller
             $content = $file->get();
             $mime = $file->getMimeType();
             $original = $file->getClientOriginalName();
-            $stored += $this->storePhotoFromContent($original, $mime, $content, $data['event']);
+            $stored += $this->importer->storeFromContent($original, $mime, $content, $data['event']);
         }
 
         if (!empty($errors)) {
@@ -88,42 +93,11 @@ class PhotoAdminController extends Controller
         }
         $contentType = $resp->header('Content-Type', 'image/jpeg');
         $filename = $this->guessFilenameFromHeadersOrUrl($resp->header('Content-Disposition'), $url, $contentType);
-        $this->storePhotoFromContent($filename, $contentType, $resp->body(), $data['event']);
+        $this->importer->storeFromContent($filename, $contentType, $resp->body(), $data['event']);
         return back()->with('status', 'Foto dari tautan berhasil diimpor.');
     }
 
-
-    protected function storePhotoFromContent(string $originalName, ?string $mime, string $binary, string $eventId): int
-    {
-        $ym = now()->format('Y/m');
-        $dir = "photos/{$ym}";
-        if (!Storage::disk('uploads')->exists($dir)) {
-            Storage::disk('uploads')->makeDirectory($dir);
-        }
-
-        $ext = pathinfo($originalName, PATHINFO_EXTENSION) ?: 'jpg';
-        $base = pathinfo($originalName, PATHINFO_FILENAME) ?: 'upload';
-        $safeBase = Str::slug($base);
-        $filename = $safeBase.'-'.Str::lower(Str::ulid()).'.'.$ext;
-        $storagePath = $dir.'/'.$filename;
-        Storage::disk('uploads')->put($storagePath, $binary);
-
-        $photo = Photo::create([
-            'filename' => $filename,
-            'original_name' => $originalName,
-            'mime' => $mime,
-            'size' => strlen($binary),
-            'storage_path' => $storagePath,
-            'qr_token' => Str::random(32),
-            'visibility' => 'public',
-            'status' => 'ready',
-            'uploaded_at' => now(),
-            'event_id' => $eventId,
-        ]);
-
-        ProcessPhoto::dispatch($photo->id)->onQueue('high');
-        return 1;
-    }
+    // storePhotoFromContent moved to App\Services\PhotoImporter
 
     protected function normalizeDriveUrl(string $url): string
     {

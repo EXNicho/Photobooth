@@ -13,7 +13,7 @@ class Photo extends Model
 
     protected $fillable = [
         'filename','original_name','mime','size','checksum','local_path','storage_path',
-        'qr_token','visibility','status','captured_at','uploaded_at','event_id'
+        'qr_token','visibility','status','captured_at','uploaded_at','event_id','drive_file_id'
     ];
 
     protected $casts = [
