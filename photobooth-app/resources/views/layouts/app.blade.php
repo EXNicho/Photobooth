@@ -12,10 +12,26 @@
           const saved = localStorage.getItem('theme');
           const root = document.documentElement;
           if (saved === 'dark') root.classList.add('dark');
+
+          function updateThemeLabel() {
+            const btn = document.getElementById('theme-btn');
+            if (!btn) return;
+            const isDark = root.classList.contains('dark');
+            btn.textContent = 'Tema: ' + (isDark ? 'Gelap' : 'Terang');
+            btn.setAttribute('aria-pressed', String(isDark));
+            btn.setAttribute('aria-label', 'Ubah tema ke ' + (isDark ? 'Terang' : 'Gelap'));
+          }
+
           window.toggleTheme = function(){
             const isDark = root.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeLabel();
           }
+
+          // Expose updater in case other scripts need it
+          window.updateThemeLabel = updateThemeLabel;
+          // Initialize on load
+          document.addEventListener('DOMContentLoaded', updateThemeLabel);
         } catch(e) {}
       })();
     </script>
@@ -37,8 +53,9 @@
               <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
           @else
               <a class="nav-link" href="{{ route('login') }}">Login</a>
+              <a class="nav-link" href="{{ route('register') }}">Daftar</a>
           @endauth
-          <button type="button" class="btn-muted" onclick="toggleTheme()" aria-label="Toggle theme">Tema</button>
+          <button id="theme-btn" type="button" class="btn-muted" onclick="toggleTheme()" aria-label="Ubah tema" aria-pressed="false">Tema</button>
       </nav>
   </header>
   <main class="container-app py-6">

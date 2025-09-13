@@ -31,6 +31,10 @@
     @apply sticky top-0 z-40 flex items-center justify-between px-5 py-3 border-b bg-white/90 backdrop-blur border-gray-200 dark:bg-gray-900/80 dark:border-gray-800;
     background-image: linear-gradient(to right, theme(colors.brand.50), white);
   }
+  /* Ensure header visually switches theme */
+  .dark .header {
+    background-image: linear-gradient(to right, theme(colors.brand.900/30), theme(colors.gray.900/0));
+  }
   .nav { @apply flex items-center gap-4 text-gray-700 dark:text-gray-300; }
   .nav-link { @apply hover:text-gray-900 transition-colors dark:hover:text-white; }
   .nav-link:focus-visible { @apply outline-none ring-2 ring-brand-400 rounded-md; }
