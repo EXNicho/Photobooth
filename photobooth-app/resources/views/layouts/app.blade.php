@@ -35,6 +35,32 @@
           window.updateThemeLabel = updateThemeLabel;
           // Initialize on load
           document.addEventListener('DOMContentLoaded', updateThemeLabel);
+
+          // Mobile nav toggle
+          function toggleMobileNav(){
+            const btn = document.getElementById('mobile-nav-btn');
+            const panel = document.getElementById('mobile-nav');
+            if (!btn || !panel) return;
+            const isOpen = panel.classList.toggle('hidden');
+            btn.setAttribute('aria-expanded', String(!isOpen));
+            btn.setAttribute('aria-label', !isOpen ? 'Tutup menu' : 'Buka menu');
+          }
+          window.toggleMobileNav = toggleMobileNav;
+          document.addEventListener('DOMContentLoaded', function(){
+            const btn = document.getElementById('mobile-nav-btn');
+            btn && btn.addEventListener('click', function(e){ e.stopPropagation(); toggleMobileNav(); });
+            document.addEventListener('click', function(e){
+              const panel = document.getElementById('mobile-nav');
+              if (!panel || panel.classList.contains('hidden')) return;
+              const within = panel.contains(e.target);
+              const btnEl = document.getElementById('mobile-nav-btn');
+              if (!within && btnEl && !btnEl.contains(e.target)) {
+                panel.classList.add('hidden');
+                btnEl.setAttribute('aria-expanded','false');
+                btnEl.setAttribute('aria-label','Buka menu');
+              }
+            });
+          });
         } catch(e) {}
       })();
     </script>
@@ -42,12 +68,15 @@
 <body class="antialiased">
   <header class="header">
       <div class="flex items-center gap-3">
+          <button id="mobile-nav-btn" type="button" class="icon-btn md:hidden" aria-label="Buka menu" aria-controls="mobile-nav" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true"><path d="M3.75 6.75A.75.75 0 0 1 4.5 6h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm0 5.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm0 5.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Z"/></svg>
+          </button>
           <strong class="text-lg">Photobooth</strong>
           @if(!empty($agentsPoliciesActive))
               <span class="badge badge-default"><span class="badge-dot"></span> Policies Active</span>
           @endif
       </div>
-      <nav class="nav absolute left-1/2 -translate-x-1/2">
+      <nav class="nav hidden md:flex absolute left-1/2 -translate-x-1/2">
           <a class="nav-link" href="{{ route('home') }}">Home</a>
           <a class="nav-link" href="{{ route('gallery') }}">Cari Foto</a>
       </nav>
@@ -55,6 +84,11 @@
           <button id="theme-btn" type="button" class="icon-btn" onclick="toggleTheme()" aria-label="Ubah tema" aria-pressed="false"></button>
           @auth
               @if(auth()->user()->is_admin)
+                <a class="icon-btn" href="{{ route('admin.events') }}" aria-label="Event QR" title="Event QR">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true">
+                    <path d="M3 3h8v8H3V3Zm2 2v4h4V5H5Zm11-2h5v5h-5V3Zm2 2v1h1V5h-1ZM3 13h5v5H3v-5Zm2 2v1h1v-1H5Zm7-2h2v2h-2v-2Zm0 3h2v2h-2v-2Zm3-3h2v2h-2v-2Zm3 0h2v2h-2v-2Zm-6 6h2v2h-2v-2Zm3-3h2v2h-2v-2Zm3 3h2v2h-2v-2Zm-3 3h2v2h-2v-2Z"/>
+                  </svg>
+                </a>
                 <a class="nav-link" href="{{ route('admin.photos.index') }}">Admin</a>
               @endif
               <a class="nav-link" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
@@ -68,6 +102,23 @@
           @endauth
       </div>
   </header>
+  <!-- Mobile nav -->
+  <div id="mobile-nav" class="md:hidden hidden border-b border-gray-200 bg-white dark:bg-gray-900 px-5 py-3">
+      <nav class="flex flex-col items-start gap-3">
+          <a class="nav-link" href="{{ route('home') }}">Home</a>
+          <a class="nav-link" href="{{ route('gallery') }}">Cari Foto</a>
+          @auth
+              @if(auth()->user()->is_admin)
+                <a class="nav-link" href="{{ route('admin.photos.index') }}">Admin</a>
+                <a class="nav-link" href="{{ route('admin.events') }}">Event QR</a>
+              @endif
+              <a class="nav-link" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-mobile').submit();">Logout</a>
+              <form id="logout-form-mobile" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
+          @else
+              <a class="nav-link" href="{{ route('login') }}">Login</a>
+          @endauth
+      </nav>
+  </div>
   <main class="container-app py-6">
       @include('components.flash')
       @yield('content')

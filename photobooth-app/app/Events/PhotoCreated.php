@@ -32,6 +32,7 @@ class PhotoCreated implements ShouldBroadcast
         return [
             'id' => $this->photo->id,
             'qr_token' => $this->photo->qr_token,
+            'event_id' => $this->photo->event_id,
             'public_url' => $this->photo->public_url,
             'thumb_url' => $this->photo->thumb_url,
             'status' => $this->photo->status,
@@ -39,4 +40,3 @@ class PhotoCreated implements ShouldBroadcast
         ];
     }
 }
-

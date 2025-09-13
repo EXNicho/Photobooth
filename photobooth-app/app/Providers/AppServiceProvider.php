@@ -9,6 +9,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Config;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register alias for admin-only middleware
         $this->app['router']->aliasMiddleware('admin', AdminOnly::class);
+        // Force Intervention Image to use GD (avoid Imagick requirement)
+        Config::set('image.driver', env('IMAGE_DRIVER', 'gd'));
         // Share storage link existence to views (for admin warning)
         $storageLinked = is_link(public_path('storage')) || File::exists(public_path('storage'));
         view()->share('storageLinked', $storageLinked);

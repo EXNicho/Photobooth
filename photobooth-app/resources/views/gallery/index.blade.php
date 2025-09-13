@@ -31,7 +31,7 @@
 <div class="my-4 pagination">{{ $photos->links() }}</div>
 
 <script>
-window.subscribePhotos && window.subscribePhotos('#gallery-grid');
+window.subscribePhotos && window.subscribePhotos('#gallery-grid', { event: @json(request('event')) });
 window.enableLightbox && window.enableLightbox('#gallery-grid');
 </script>
 @endsection

@@ -45,18 +45,20 @@
         @endif
       </td>
         <td>{{ optional($p->uploaded_at)->format('Y-m-d H:i') }}</td>
-        <td class="space-x-2 whitespace-nowrap">
-          <form class="inline" method="post" action="{{ route('admin.photos.retry', $p) }}">@csrf<button class="btn-warning" type="submit">Retry</button></form>
-          <form class="inline" method="post" action="{{ route('admin.photos.regenerate', $p) }}">@csrf<button class="btn-info" type="submit">Regen</button></form>
-          @if($p->status !== 'ready')
-            <form class="inline" method="post" action="{{ route('admin.photos.approve', $p) }}">@csrf<button class="btn-success" type="submit">Approve</button></form>
-          @endif
-          @if($p->status !== 'rejected')
-            <form class="inline" method="post" action="{{ route('admin.photos.reject', $p) }}">@csrf<button class="btn-danger" type="submit">Reject</button></form>
-          @endif
-          <form class="inline" method="post" action="{{ route('admin.photos.featured', $p) }}">@csrf<button class="btn-info" type="submit">{{ $p->is_featured ? 'Hapus Unggulan' : 'Jadikan Unggulan' }}</button></form>
-          <form class="inline" method="post" action="{{ route('admin.photos.destroy', $p) }}" onsubmit="return confirm('Hapus foto ini?');">@csrf @method('DELETE')<button class="btn-danger" type="submit">Delete</button></form>
-          <a class="btn-muted" href="{{ route('photos.token', $p->qr_token) }}" target="_blank">Lihat</a>
+        <td class="whitespace-normal">
+          <div class="flex flex-wrap items-center gap-2">
+            <form class="inline" method="post" action="{{ route('admin.photos.retry', $p) }}">@csrf<button class="btn-warning" type="submit">Retry</button></form>
+            <form class="inline" method="post" action="{{ route('admin.photos.regenerate', $p) }}">@csrf<button class="btn-info" type="submit">Regen</button></form>
+            @if($p->status !== 'ready')
+              <form class="inline" method="post" action="{{ route('admin.photos.approve', $p) }}">@csrf<button class="btn-success" type="submit">Approve</button></form>
+            @endif
+            @if($p->status !== 'rejected')
+              <form class="inline" method="post" action="{{ route('admin.photos.reject', $p) }}">@csrf<button class="btn-danger" type="submit">Reject</button></form>
+            @endif
+            <form class="inline" method="post" action="{{ route('admin.photos.featured', $p) }}">@csrf<button class="btn-info" type="submit">{{ $p->is_featured ? 'Hapus Unggulan' : 'Jadikan Unggulan' }}</button></form>
+            <form class="inline" method="post" action="{{ route('admin.photos.destroy', $p) }}" onsubmit="return confirm('Hapus foto ini?');">@csrf @method('DELETE')<button class="btn-danger" type="submit">Delete</button></form>
+            <a class="btn-muted" href="{{ route('photos.token', $p->qr_token) }}" target="_blank">Lihat</a>
+          </div>
         </td>
       </tr>
     @endforeach

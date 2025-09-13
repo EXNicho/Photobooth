@@ -36,9 +36,18 @@ class ProcessPhoto implements ShouldQueue
         }
         $thumbPath = preg_replace('/(\.[^.]+)$/', '_thumb$1', $srcPath);
 
-        $img = Image::read($disk->path($srcPath));
-        $img->scaleDown(1024, 1024); // max dim
-        $img->save($disk->path($thumbPath), 80);
+        try {
+            $img = Image::read($disk->path($srcPath));
+            $img->scaleDown(1024, 1024); // max dim
+            $img->save($disk->path($thumbPath), 80);
+        } catch (\Throwable $e) {
+            // Fallback: copy original if driver missing or processing fails
+            try {
+                if ($disk->exists($srcPath)) {
+                    $disk->put($thumbPath, $disk->get($srcPath));
+                }
+            } catch (\Throwable $ignore) {}
+        }
 
         // Generate QR in the same disk
         $qrDir = 'qrcodes';

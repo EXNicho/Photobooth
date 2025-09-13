@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\File as FileRule;
+use Illuminate\Support\Facades\DB;
+use SimpleSoftwareIO\QrCode\Facades\QrCode; // kept for photo QR in jobs
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 
 class PhotoAdminController extends Controller
 {
@@ -229,5 +235,130 @@ class PhotoAdminController extends Controller
 
         $photo->delete();
         return back()->with('status', 'Foto berhasil dihapus.');
+    }
+
+    public function events()
+    {
+        // Collect events from photos table
+        $dbEvents = DB::table('photos')
+            ->select('event_id', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('event_id')
+            ->groupBy('event_id')
+            ->pluck('total', 'event_id')
+            ->toArray();
+
+        // Collect events from generated QR metadata (supports events without photos yet)
+        $metaEvents = [];
+        $qrMetaByEvent = [];
+        try {
+            foreach (Storage::disk('uploads')->files('eventqrs') as $file) {
+                if (!str_ends_with($file, '.json')) continue;
+                $json = json_decode(Storage::disk('uploads')->get($file), true);
+                if (!is_array($json)) continue;
+                if (empty($json['event']) || empty($json['token'])) continue;
+                $eid = (string) $json['event'];
+                $token = (string) $json['token'];
+                $metaEvents[$eid] = $metaEvents[$eid] ?? 0; // merged later
+                $qrMetaByEvent[$eid] = [
+                    'token' => $token,
+                    'url' => url('/uploads/eventqrs/'.$token.'.svg'),
+                ];
+            }
+        } catch (\Throwable $e) { /* ignore */ }
+
+        // Merge metadata events with db counts
+        $all = [];
+        foreach (array_unique(array_merge(array_keys($dbEvents), array_keys($metaEvents))) as $eid) {
+            $qr = $qrMetaByEvent[$eid] ?? null;
+            $all[] = (object) [
+                'event_id' => $eid,
+                'total' => $dbEvents[$eid] ?? 0,
+                'has_qr' => (bool) $qr,
+                'qr_token' => $qr['token'] ?? null,
+                'qr_url' => $qr['url'] ?? null,
+            ];
+        }
+        // Sort by event_id asc
+        usort($all, fn($a,$b) => strcmp($a->event_id, $b->event_id));
+
+        return view('admin.events.index', ['events' => $all]);
+    }
+
+    public function deleteEvent(Request $request)
+    {
+        $data = $request->validate([
+            'event' => ['required','string'],
+        ]);
+        $event = $data['event'];
+
+        // Delete photos & files for this event
+        $photos = \App\Models\Photo::where('event_id', $event)->get();
+        $deleted = 0;
+        foreach ($photos as $photo) {
+            $paths = [
+                $photo->storage_path,
+                preg_replace('/(\.[^.]+)$/', '_thumb$1', $photo->storage_path),
+                'qrcodes/'.$photo->qr_token.'.png',
+            ];
+            foreach (['uploads','public'] as $disk) {
+                foreach ($paths as $rel) {
+                    try { if (Storage::disk($disk)->exists($rel)) Storage::disk($disk)->delete($rel); } catch (\Throwable $e) {}
+                }
+            }
+            $photo->delete();
+            $deleted++;
+        }
+
+        // Delete event QR assets (find meta JSON by event)
+        try {
+            foreach (Storage::disk('uploads')->files('eventqrs') as $file) {
+                if (!str_ends_with($file, '.json')) continue;
+                $json = json_decode(Storage::disk('uploads')->get($file), true);
+                if (($json['event'] ?? null) === $event) {
+                    $token = $json['token'] ?? null;
+                    Storage::disk('uploads')->delete($file);
+                    if ($token) {
+                        Storage::disk('uploads')->delete('eventqrs/'.$token.'.svg');
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        return back()->with('status', "Event '$event' dihapus. Foto terhapus: $deleted");
+    }
+
+    public function generateEventQr(Request $request)
+    {
+        $data = $request->validate([
+            'event' => ['required','string','max:160'],
+        ]);
+        $event = $data['event'];
+        $url = route('gallery', ['event' => $event]);
+        // Generate QR as SVG to avoid Imagick/GD dependency
+        $renderer = new ImageRenderer(
+            new RendererStyle(560),
+            new SvgImageBackEnd()
+        );
+        $writer = new Writer($renderer);
+        $svg = $writer->writeString($url);
+        $dir = 'eventqrs';
+        if (!Storage::disk('uploads')->exists($dir)) {
+            Storage::disk('uploads')->makeDirectory($dir);
+        }
+        $token = Str::slug($event) . '-' . substr(sha1($event), 0, 8);
+        $file = $dir . '/' . $token . '.svg';
+        Storage::disk('uploads')->put($file, $svg);
+        // Write metadata to ensure event appears in listing even with zero photos
+        $meta = [
+            'event' => $event,
+            'token' => $token,
+            'url' => $url,
+            'created_at' => now()->toIso8601String(),
+        ];
+        Storage::disk('uploads')->put($dir . '/' . $token . '.json', json_encode($meta));
+        if ($request->boolean('download')) {
+            return response()->download(public_path('uploads/'.$file), 'qr-'.$token.'.svg');
+        }
+        return back()->with('status', 'QR berhasil dibuat: ' . url('/uploads/'.$file));
     }
 }

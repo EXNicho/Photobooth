@@ -3,13 +3,14 @@
 //   npm i laravel-echo pusher-js --save-dev
 // Then initialize Echo here.
 
-window.subscribePhotos = (gridSelector) => {
+window.subscribePhotos = (gridSelector, opts = {}) => {
   if (!window.Echo) return;
   const grid = document.querySelector(gridSelector);
   if (!grid) return;
   window.Echo.channel('photos')
     .listen('.created', (e) => {
       if (!e?.thumb_url && !e?.public_url) return;
+      if (opts.event && e.event_id && String(e.event_id) !== String(opts.event)) return;
       const div = document.createElement('a');
       div.className = 'card';
       const href = `/p/${e.qr_token}`;

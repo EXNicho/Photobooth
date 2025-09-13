@@ -49,5 +49,10 @@ Route::middleware(['web', \App\Http\Middleware\AgentsPolicyMiddleware::class])->
         Route::post('/photos/{photo}/reject', [PhotoAdminController::class, 'reject'])->name('photos.reject');
         Route::delete('/photos/{photo}', [PhotoAdminController::class, 'destroy'])->name('photos.destroy');
         Route::post('/photos/{photo}/featured', [PhotoAdminController::class, 'markFeatured'])->name('photos.featured');
+
+        // Events & QR
+        Route::get('/events', [PhotoAdminController::class, 'events'])->name('events');
+        Route::post('/events/qr', [PhotoAdminController::class, 'generateEventQr'])->name('events.qr');
+        Route::post('/events/delete', [PhotoAdminController::class, 'deleteEvent'])->name('events.delete');
     });
 });
