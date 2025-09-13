@@ -21,21 +21,31 @@ class Photo extends Model
         'uploaded_at' => 'datetime',
     ];
 
+    protected function urlFromDisk(string $disk, string $path, string $prefix): ?string
+    {
+        return Storage::disk($disk)->exists($path) ? ($prefix . '/' . ltrim($path, '/')) : null;
+    }
+
     public function getPublicUrlAttribute(): ?string
     {
-        return Storage::disk('public')->url($this->storage_path);
+        $path = $this->storage_path;
+        return $this->urlFromDisk('uploads', $path, '/uploads')
+            ?? $this->urlFromDisk('public', $path, '/storage')
+            ?? route('photos.media', ['photo' => $this->id, 'variant' => 'full']);
     }
 
     public function getThumbUrlAttribute(): ?string
     {
         $path = preg_replace('/(\.[^.]+)$/', '_thumb$1', $this->storage_path);
-        return Storage::disk('public')->exists($path) ? Storage::disk('public')->url($path) : null;
+        return $this->urlFromDisk('uploads', $path, '/uploads')
+            ?? $this->urlFromDisk('public', $path, '/storage');
     }
 
     public function getQrUrlAttribute(): ?string
     {
         $path = 'qrcodes/' . $this->qr_token . '.png';
-        return Storage::disk('public')->exists($path) ? Storage::disk('public')->url($path) : null;
+        return $this->urlFromDisk('uploads', $path, '/uploads')
+            ?? $this->urlFromDisk('public', $path, '/storage')
+            ?? null;
     }
 }
-

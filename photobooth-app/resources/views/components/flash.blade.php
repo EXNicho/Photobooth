@@ -2,7 +2,7 @@
   <div class="alert-success mb-3 relative pr-10">
     {{ session('status') }}
     <button type="button" class="absolute top-2 right-2 text-gray-700 dark:text-gray-300"
-            aria-label="Tutup" onclick="this.closest('[class*=alert-]').remove()">✕</button>
+            aria-label="Tutup" onclick="this.closest('[class*=alert-]').remove()">×</button>
   </div>
 @endif
 
@@ -15,6 +15,7 @@
       @endforeach
     </ul>
     <button type="button" class="absolute top-2 right-2 text-danger-700"
-            aria-label="Tutup" onclick="this.closest('[class*=alert-]').remove()">✕</button>
+            aria-label="Tutup" onclick="this.closest('[class*=alert-]').remove()">×</button>
   </div>
 @endif
+

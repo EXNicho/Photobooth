@@ -17,9 +17,12 @@
             const btn = document.getElementById('theme-btn');
             if (!btn) return;
             const isDark = root.classList.contains('dark');
-            btn.textContent = 'Tema: ' + (isDark ? 'Gelap' : 'Terang');
+            const sun = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true"><path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0 4a1 1 0 0 1-1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Zm0-20a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm10 10a1 1 0 0 1-1 1h-1a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1ZM4 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1Zm13.657 6.243a1 1 0 0 1 0-1.414l.707-.707a1 1 0 1 1 1.414 1.414l-.707.707a1 1 0 0 1-1.414 0ZM4.222 5.636A1 1 0 0 1 5.636 4.22l.707.707A1 1 0 0 1 4.93 6.343l-.707-.707Zm14.142 0-.707.707A1 1 0 0 1 16.95 4.93l.707-.707a1 1 0 0 1 1.414 1.414ZM6.343 19.071l-.707.707A1 1 0 1 1 4.222 18.364l.707-.707a1 1 0 0 1 1.414 1.414Z"/></svg>';
+            const moon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>';
+            btn.innerHTML = isDark ? moon : sun;
             btn.setAttribute('aria-pressed', String(isDark));
             btn.setAttribute('aria-label', 'Ubah tema ke ' + (isDark ? 'Terang' : 'Gelap'));
+            btn.title = isDark ? 'Mode Gelap' : 'Mode Terang';
           }
 
           window.toggleTheme = function(){
@@ -44,27 +47,56 @@
               <span class="badge badge-default"><span class="badge-dot"></span> Policies Active</span>
           @endif
       </div>
-      <nav class="nav">
+      <nav class="nav absolute left-1/2 -translate-x-1/2">
           <a class="nav-link" href="{{ route('home') }}">Home</a>
           <a class="nav-link" href="{{ route('gallery') }}">Cari Foto</a>
+      </nav>
+      <div class="flex items-center gap-4">
+          <button id="theme-btn" type="button" class="icon-btn" onclick="toggleTheme()" aria-label="Ubah tema" aria-pressed="false"></button>
           @auth
-              <a class="nav-link" href="{{ route('admin.photos.index') }}">Admin</a>
+              @if(auth()->user()->is_admin)
+                <a class="nav-link" href="{{ route('admin.photos.index') }}">Admin</a>
+              @endif
               <a class="nav-link" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
               <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
           @else
-              <a class="nav-link" href="{{ route('login') }}">Login</a>
-              <a class="nav-link" href="{{ route('register') }}">Daftar</a>
+              <a class="icon-btn" href="{{ route('login') }}" aria-label="Login" title="Login">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true">
+                  <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm-7 9a7 7 0 1 1 14 0H5Z" />
+                </svg>
+              </a>
           @endauth
-          <button id="theme-btn" type="button" class="btn-muted" onclick="toggleTheme()" aria-label="Ubah tema" aria-pressed="false">Tema</button>
-      </nav>
+      </div>
   </header>
   <main class="container-app py-6">
       @include('components.flash')
       @yield('content')
   </main>
-  <footer class="footer">
-      <div>&copy; {{ date('Y') }} Photobooth. Semua hak cipta.</div>
-      <div class="flex items-center gap-3"><a class="nav-link" href="{{ route('about') }}">Tentang</a> <span aria-hidden="true">•</span> <a class="nav-link" href="{{ route('contact') }}">Kontak</a></div>
+    <footer class="footer">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+        <div class="flex items-center gap-2">
+          <strong>Photobooth</strong>
+          <span class="text-sm">&copy; {{ date('Y') }}</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <a class="nav-link" href="{{ route('about') }}">Tentang</a>
+          <a class="nav-link" href="{{ route('contact') }}">Kontak</a>
+          <a class="nav-link" href="{{ route('gallery') }}">Galeri</a>
+        </div>
+        <div class="flex items-center gap-2">
+          <a class="icon-ghost" href="https://instagram.com/yourbrand" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5Zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5ZM18 6.75a1.25 1.25 0 1 1-1.25 1.25A1.25 1.25 0 0 1 18 6.75Z"/></svg>
+          </a>
+          <a class="icon-ghost" href="https://wa.me/6281234567890" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true"><path d="M20.52 3.48A11.93 11.93 0 0 0 12.06 0C5.55 0 .34 5.21.34 11.73a11.64 11.64 0 0 0 1.54 5.85L0 24l6.6-1.86a11.9 11.9 0 0 0 5.43 1.38h.01c6.51 0 11.73-5.21 11.73-11.73 0-3.13-1.22-6.07-3.25-8.21ZM12.03 21.2h-.01a9.5 9.5 0 0 1-4.84-1.33l-.35-.2-3.92 1.11 1.05-4.02-.21-.37a9.51 9.51 0 0 1-1.44-5.05c0-5.25 4.27-9.52 9.52-9.52 2.55 0 4.95.99 6.76 2.79a9.47 9.47 0 0 1 2.79 6.76c0 5.25-4.27 9.53-9.52 9.53Zm5.49-7.13c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15s-.77.97-.95 1.17-.35.22-.65.07c-.3-.15-1.27-.47-2.43-1.5-.9-.8-1.51-1.78-1.69-2.08-.18-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.11 3.22 5.12 4.52.72.31 1.28.5 1.72.64.72.23 1.37.2 1.88.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.18-1.42-.07-.12-.27-.2-.57-.35Z"/></svg>
+          </a>
+          <a class="icon-ghost" href="mailto:halo@photobooth.local" aria-label="Email" title="Email">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true"><path d="M2 5.75A2.75 2.75 0 0 1 4.75 3h14.5A2.75 2.75 0 0 1 22 5.75v12.5A2.75 2.75 0 0 1 19.25 21H4.75A2.75 2.75 0 0 1 2 18.25V5.75Zm2.75-.25a.75.75 0 0 0-.75.75v.3l8 4.9 8-4.9v-.3a.75.75 0 0 0-.75-.75H4.75Zm16 3.39-7.55 4.62a1.75 1.75 0 0 1-1.8 0L3.86 8.89v9.36c0 .41.34.75.75.75h14.5c.41 0 .75-.34.75-.75V8.89Z"/></svg>
+          </a>
+        </div>
+      </div>
   </footer>
 </body>
 </html>
+
+

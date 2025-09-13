@@ -28,7 +28,7 @@
   .ar-16-9 { aspect-ratio: 16 / 9; }
   .container-app { @apply w-full max-w-none px-6 sm:px-8 lg:px-10; }
   .header {
-    @apply sticky top-0 z-40 flex items-center justify-between px-5 py-3 border-b bg-white/90 backdrop-blur border-gray-200 dark:bg-gray-900/80 dark:border-gray-800;
+    @apply sticky top-0 z-40 relative flex items-center justify-between px-5 py-3 border-b bg-white/90 backdrop-blur border-gray-200 dark:bg-gray-900/80 dark:border-gray-800;
     background-image: linear-gradient(to right, theme(colors.brand.50), white);
   }
   /* Ensure header visually switches theme */
@@ -38,6 +38,7 @@
   .nav { @apply flex items-center gap-4 text-gray-700 dark:text-gray-300; }
   .nav-link { @apply hover:text-gray-900 transition-colors dark:hover:text-white; }
   .nav-link:focus-visible { @apply outline-none ring-2 ring-brand-400 rounded-md; }
+  .icon-btn { @apply inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 transition-colors focus-visible:ring-2 focus-visible:ring-brand-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700; }
 
   /* Badges */
   .badge { @apply inline-flex items-center gap-1.5 border px-2 py-1 rounded-full text-xs; }
@@ -62,6 +63,11 @@
   .btn-ghost { @apply inline-flex items-center gap-2 text-brand-700 hover:text-brand-800 underline-offset-4 hover:underline; }
   .btn-outline { @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-brand-300 text-brand-700 hover:bg-brand-50 focus-visible:ring-2 focus-visible:ring-brand-400 dark:border-brand-700 dark:text-brand-300 dark:hover:bg-brand-900/30; }
   .btn-lg { @apply px-5 py-2.5 text-lg rounded-xl; }
+  /* Subtle semantic buttons to match badge tone */
+  .btn-success { @apply btn border border-success-200 bg-success-50 text-success-700 hover:bg-success-100 active:scale-[0.99] focus-visible:ring-success-300; }
+  .btn-danger  { @apply btn border border-danger-200  bg-danger-50  text-danger-700  hover:bg-danger-100  active:scale-[0.99] focus-visible:ring-danger-300; }
+  .btn-warning { @apply btn border border-warning-200 bg-warning-50 text-warning-700 hover:bg-warning-100 active:scale-[0.99] focus-visible:ring-warning-300; }
+  .btn-info    { @apply btn border border-info-200    bg-info-50    text-info-700    hover:bg-info-100    active:scale-[0.99] focus-visible:ring-info-300; }
 
   /* Cards & media */
   .grid-gallery { @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4; }
@@ -74,6 +80,7 @@
 
   /* Footer */
   .footer { @apply mt-10 border-t border-gray-200 text-gray-600 px-5 py-6 flex items-center justify-between dark:border-gray-800 dark:text-gray-300 bg-white/60 backdrop-blur dark:bg-gray-900/40; }
+  .icon-ghost { @apply inline-flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-brand-400 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors; }
 
   /* Table */
   .table { @apply min-w-full text-sm; }

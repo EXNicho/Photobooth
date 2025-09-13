@@ -5,6 +5,7 @@ use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\Admin\PhotoAdminController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as CsrfMiddleware;
 
 Route::middleware(['web', \App\Http\Middleware\AgentsPolicyMiddleware::class])->group(function () {
     Route::get('/', [GalleryController::class, 'home'])->name('home');
@@ -12,6 +13,7 @@ Route::middleware(['web', \App\Http\Middleware\AgentsPolicyMiddleware::class])->
     Route::get('/p/{token}', [GalleryController::class, 'showByToken'])->name('photos.token');
     Route::get('/download/{photo}', [GalleryController::class, 'signedDownload'])->name('photos.download');
     Route::get('/download/stream/{photo}', [GalleryController::class, 'streamDownload'])->name('photos.download.stream')->middleware('signed');
+    Route::get('/media/{photo}/{variant?}', [GalleryController::class, 'media'])->where('variant','thumb|full')->name('photos.media');
 
     // Static pages
     Route::view('/about', 'static.about')->name('about');
@@ -29,16 +31,22 @@ Route::middleware(['web', \App\Http\Middleware\AgentsPolicyMiddleware::class])->
 
     // Auth routes (basic email/password)
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.perform');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.perform')->withoutMiddleware([CsrfMiddleware::class]);
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.perform');
     Route::get('/forgot', [AuthController::class, 'showForgotPassword'])->name('password.request');
     Route::post('/forgot', [AuthController::class, 'sendForgotPassword'])->name('password.email');
 
-    Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['auth','admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/photos', [PhotoAdminController::class, 'index'])->name('photos.index');
+        Route::get('/photos/create', [PhotoAdminController::class, 'create'])->name('photos.create');
+        Route::post('/photos/upload', [PhotoAdminController::class, 'upload'])->name('photos.upload');
+        Route::post('/photos/import-url', [PhotoAdminController::class, 'importUrl'])->name('photos.import');
         Route::post('/photos/{photo}/retry', [PhotoAdminController::class, 'retry'])->name('photos.retry');
         Route::post('/photos/{photo}/regenerate-qr', [PhotoAdminController::class, 'regenerateQr'])->name('photos.regenerate');
+        Route::post('/photos/{photo}/approve', [PhotoAdminController::class, 'approve'])->name('photos.approve');
+        Route::post('/photos/{photo}/reject', [PhotoAdminController::class, 'reject'])->name('photos.reject');
+        Route::delete('/photos/{photo}', [PhotoAdminController::class, 'destroy'])->name('photos.destroy');
     });
 });

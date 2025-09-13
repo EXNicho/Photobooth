@@ -3,10 +3,12 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Http\Middleware\AdminOnly;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\File;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register alias for admin-only middleware
+        $this->app['router']->aliasMiddleware('admin', AdminOnly::class);
+        // Share storage link existence to views (for admin warning)
+        $storageLinked = is_link(public_path('storage')) || File::exists(public_path('storage'));
+        view()->share('storageLinked', $storageLinked);
         // Rate limiter for photobooth ingest
         RateLimiter::for('photobooth', function (Request $request) {
             $key = optional($request->user())->id ?: $request->ip();

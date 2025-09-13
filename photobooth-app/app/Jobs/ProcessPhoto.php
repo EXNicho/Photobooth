@@ -28,16 +28,19 @@ class ProcessPhoto implements ShouldQueue
     {
         $photo = Photo::findOrFail($this->photoId);
 
-        // Generate thumbnail
-        $disk = Storage::disk('public');
+        // Generate thumbnail (prefer uploads disk, fallback to public)
+        $disk = Storage::disk('uploads');
         $srcPath = $photo->storage_path;
+        if (!$disk->exists($srcPath)) {
+            $disk = Storage::disk('public');
+        }
         $thumbPath = preg_replace('/(\.[^.]+)$/', '_thumb$1', $srcPath);
 
         $img = Image::read($disk->path($srcPath));
         $img->scaleDown(1024, 1024); // max dim
         $img->save($disk->path($thumbPath), 80);
 
-        // Generate QR
+        // Generate QR in the same disk
         $qrDir = 'qrcodes';
         if (!$disk->exists($qrDir)) {
             $disk->makeDirectory($qrDir);
@@ -62,4 +65,3 @@ class ProcessPhoto implements ShouldQueue
         }
     }
 }
-

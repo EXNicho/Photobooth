@@ -6,6 +6,7 @@ use App\Models\Photo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
 {
@@ -63,5 +64,21 @@ class GalleryController extends Controller
             'Content-Disposition' => 'attachment; filename="'.$photo->filename.'"'
         ]);
     }
-}
 
+    public function media(Request $request, Photo $photo, string $variant = 'full')
+    {
+        $rel = $photo->storage_path;
+        if ($variant === 'thumb') {
+            $rel = preg_replace('/(\.[^.]+)$/', '_thumb$1', $rel);
+        }
+        $disk = Storage::disk('uploads');
+        if ($disk->exists($rel)) {
+            return response()->file(public_path('uploads/'.ltrim($rel,'/')));
+        }
+        $disk = Storage::disk('public');
+        if ($disk->exists($rel)) {
+            return response()->file(storage_path('app/public/'.ltrim($rel,'/')));
+        }
+        abort(404);
+    }
+}
