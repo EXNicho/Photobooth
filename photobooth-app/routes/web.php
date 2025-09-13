@@ -48,5 +48,6 @@ Route::middleware(['web', \App\Http\Middleware\AgentsPolicyMiddleware::class])->
         Route::post('/photos/{photo}/approve', [PhotoAdminController::class, 'approve'])->name('photos.approve');
         Route::post('/photos/{photo}/reject', [PhotoAdminController::class, 'reject'])->name('photos.reject');
         Route::delete('/photos/{photo}', [PhotoAdminController::class, 'destroy'])->name('photos.destroy');
+        Route::post('/photos/{photo}/featured', [PhotoAdminController::class, 'markFeatured'])->name('photos.featured');
     });
 });

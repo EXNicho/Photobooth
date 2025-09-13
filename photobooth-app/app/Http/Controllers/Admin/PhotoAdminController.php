@@ -26,7 +26,8 @@ class PhotoAdminController extends Controller
 
     public function upload(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
+            'event' => ['required','string','max:120'],
             'files' => ['required','array'],
             'files.*' => [FileRule::image()->max(10 * 1024)], // up to 10MB each (server limit may still apply)
         ]);
@@ -57,7 +58,7 @@ class PhotoAdminController extends Controller
             $content = $file->get();
             $mime = $file->getMimeType();
             $original = $file->getClientOriginalName();
-            $stored += $this->storePhotoFromContent($original, $mime, $content);
+            $stored += $this->storePhotoFromContent($original, $mime, $content, $data['event']);
         }
 
         if (!empty($errors)) {
@@ -70,6 +71,7 @@ class PhotoAdminController extends Controller
     public function importUrl(Request $request)
     {
         $data = $request->validate([
+            'event' => ['required','string','max:120'],
             'url' => ['required','url'],
         ]);
 
@@ -80,12 +82,12 @@ class PhotoAdminController extends Controller
         }
         $contentType = $resp->header('Content-Type', 'image/jpeg');
         $filename = $this->guessFilenameFromHeadersOrUrl($resp->header('Content-Disposition'), $url, $contentType);
-        $this->storePhotoFromContent($filename, $contentType, $resp->body());
+        $this->storePhotoFromContent($filename, $contentType, $resp->body(), $data['event']);
         return back()->with('status', 'Foto dari tautan berhasil diimpor.');
     }
 
 
-    protected function storePhotoFromContent(string $originalName, ?string $mime, string $binary): int
+    protected function storePhotoFromContent(string $originalName, ?string $mime, string $binary, string $eventId): int
     {
         $ym = now()->format('Y/m');
         $dir = "photos/{$ym}";
@@ -110,6 +112,7 @@ class PhotoAdminController extends Controller
             'visibility' => 'public',
             'status' => 'ready',
             'uploaded_at' => now(),
+            'event_id' => $eventId,
         ]);
 
         ProcessPhoto::dispatch($photo->id)->onQueue('high');
@@ -172,6 +175,38 @@ class PhotoAdminController extends Controller
         $photo->status = 'rejected';
         $photo->save();
         return back()->with('status', 'Foto ditandai sebagai rejected.');
+    }
+
+    public function markBest(Request $request, Photo $photo)
+    {
+        $value = $request->boolean('value', null);
+        if (is_null($value)) {
+            $photo->is_best = !$photo->is_best;
+        } else {
+            $photo->is_best = $value;
+        }
+        $photo->save();
+        return back()->with('status', 'Status "Terbaik" diperbarui.');
+    }
+
+    public function markFeatured(Request $request, Photo $photo)
+    {
+        $value = $request->has('value') ? $request->boolean('value') : !$photo->is_featured;
+        $photo->is_featured = $value;
+        if ($value) {
+            // Pastikan langsung terlihat di Home
+            $photo->status = 'ready';
+            $photo->visibility = 'public';
+            if (!$photo->uploaded_at) {
+                $photo->uploaded_at = now();
+            }
+        }
+        $photo->save();
+        if ($value) {
+            // Pastikan thumbnail/QR tersedia, namun UI tetap fallback ke gambar asli bila belum ada
+            ProcessPhoto::dispatch($photo->id)->onQueue('high');
+        }
+        return back()->with('status', 'Status "Unggulan" diperbarui.');
     }
 
     public function destroy(Photo $photo)

@@ -12,13 +12,25 @@ class GalleryController extends Controller
 {
     public function home(Request $request)
     {
-        $photos = Photo::query()
+        $featuredPhotos = Photo::query()
             ->where('visibility', 'public')
             ->where('status', 'ready')
+            ->where('is_featured', true)
             ->latest('uploaded_at')
-            ->limit(12)
+            ->limit(6)
             ->get();
-        return view('home', compact('photos'));
+
+        $excludeIds = $featuredPhotos->pluck('id')->all();
+
+        $latestPhotos = Photo::query()
+            ->where('visibility', 'public')
+            ->where('status', 'ready')
+            ->when(!empty($excludeIds), fn($q) => $q->whereNotIn('id', $excludeIds))
+            ->latest('uploaded_at')
+            ->limit(6)
+            ->get();
+
+        return view('home', compact('featuredPhotos','latestPhotos'));
     }
 
     public function index(Request $request)
@@ -59,10 +71,27 @@ class GalleryController extends Controller
         if (!$request->hasValidSignature()) {
             abort(401);
         }
-        return response()->file(storage_path('app/public/' . $photo->storage_path), [
-            'Content-Type' => $photo->mime ?? 'application/octet-stream',
-            'Content-Disposition' => 'attachment; filename="'.$photo->filename.'"'
-        ]);
+        $relative = ltrim($photo->storage_path, '/');
+        $mime = $photo->mime ?? 'application/octet-stream';
+        $downloadName = $photo->filename;
+
+        // Prefer publicly published uploads folder
+        $uploadsPath = public_path('uploads/' . $relative);
+        if (is_file($uploadsPath)) {
+            return response()->download($uploadsPath, $downloadName, [
+                'Content-Type' => $mime,
+            ]);
+        }
+
+        // Fallback to storage public disk
+        $storagePath = storage_path('app/public/' . $relative);
+        if (is_file($storagePath)) {
+            return response()->download($storagePath, $downloadName, [
+                'Content-Type' => $mime,
+            ]);
+        }
+
+        abort(404, 'File tidak ditemukan');
     }
 
     public function media(Request $request, Photo $photo, string $variant = 'full')

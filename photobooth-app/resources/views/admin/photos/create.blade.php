@@ -18,6 +18,11 @@
     <h2 class="font-semibold mb-3">Unggah File</h2>
     <form action="{{ route('admin.photos.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
       @csrf
+      <div>
+        <label class="block text-sm text-gray-700 dark:text-gray-300" for="event-upload">Event ID</label>
+        <input id="event-upload" name="event" type="text" value="{{ old('event') }}" required class="input w-full" placeholder="Misal: wedding-rian-dita-2025-01-12">
+        <p class="text-xs text-gray-500 mt-1">Wajib diisi. User dapat menyaring foto dengan Event ID ini di halaman Cari Foto.</p>
+      </div>
       <input type="file" name="files[]" accept="image/*" multiple class="block w-full text-sm" required>
       <p class="text-xs text-gray-500">Catatan: Batas ukuran per file mengikuti konfigurasi server (upload_max_filesize, post_max_size). Jika terjadi kegagalan unggah, coba perkecil ukuran atau sesuaikan konfigurasi PHP.</p>
       <button type="submit" class="btn-primary">Unggah</button>
@@ -28,6 +33,10 @@
     <h2 class="font-semibold mb-3">Impor dari Google Drive / URL Gambar</h2>
     <form action="{{ route('admin.photos.import') }}" method="POST" class="space-y-4">
       @csrf
+      <div>
+        <label class="block text-sm text-gray-700 dark:text-gray-300" for="event-import">Event ID</label>
+        <input id="event-import" name="event" type="text" value="{{ old('event') }}" required class="input w-full" placeholder="Misal: wedding-rian-dita-2025-01-12">
+      </div>
       <label class="block text-sm text-gray-700 dark:text-gray-300" for="url">Tautan</label>
       <input id="url" name="url" type="url" value="{{ old('url') }}" placeholder="Tempel tautan berbagi Google Drive atau URL gambar" class="input w-full" required>
       <button type="submit" class="btn-secondary">Impor</button>

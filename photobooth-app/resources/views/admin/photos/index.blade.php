@@ -40,6 +40,9 @@
           $cls = $map[$p->status] ?? 'badge-default';
         @endphp
         <span class="badge {{ $cls }}">{{ ucfirst($p->status) }}</span>
+        @if($p->is_featured)
+          <span class="badge badge-info">Unggulan</span>
+        @endif
       </td>
         <td>{{ optional($p->uploaded_at)->format('Y-m-d H:i') }}</td>
         <td class="space-x-2 whitespace-nowrap">
@@ -51,6 +54,7 @@
           @if($p->status !== 'rejected')
             <form class="inline" method="post" action="{{ route('admin.photos.reject', $p) }}">@csrf<button class="btn-danger" type="submit">Reject</button></form>
           @endif
+          <form class="inline" method="post" action="{{ route('admin.photos.featured', $p) }}">@csrf<button class="btn-info" type="submit">{{ $p->is_featured ? 'Hapus Unggulan' : 'Jadikan Unggulan' }}</button></form>
           <form class="inline" method="post" action="{{ route('admin.photos.destroy', $p) }}" onsubmit="return confirm('Hapus foto ini?');">@csrf @method('DELETE')<button class="btn-danger" type="submit">Delete</button></form>
           <a class="btn-muted" href="{{ route('photos.token', $p->qr_token) }}" target="_blank">Lihat</a>
         </td>
